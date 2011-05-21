@@ -1,0 +1,82 @@
+= ActsAsCommentable
+
+ActsAsCommentable is a plugin to allow any model to comment on any other model. This is accomplished through a double polymorphic relationship on the Comment model.
+This plugin supports nested comment threads through the use of the ancenstry gem.
+
+== Installation
+
+Run the following command:
+  rails plugin install git://github.com/ygor/acts_as_commentable.git
+
+Run the generator:
+  rails generate acts_as_commentable
+
+== Usage
+
+=== Setup
+
+For your model(s) that you want to allow to be commented on, just add the mixin:
+  class Book < ActiveRecord::Base
+    ...
+    acts_as_commentable
+    ...
+  end
+
+Make your model(s) that can comment on other models acts_as_commenter
+  class User < ActiveRecord::Base
+    ...
+    acts_as_commenter
+    ...
+  end
+
+---
+
+=== acts_as_commenter methods
+
+To have an object comment another use the following:
+  book = Book.find(1)
+  user = User.find(1)
+  user.comment(book, "This is my comment.") # Creates a record for the user as the commenter and the book as the commentable
+
+To make a private comment, add true as a third parameter, e.g.
+  user.comment(book, "This is my private comment.", true) # Creates a record for the user as the commenter and the book as the commentable, that is private
+
+You can check to see if an object that acts_as_commenter has commented on another object through the following:
+  user.commented?(book) # Returns true or false
+
+---
+
+=== acts_as_commentable methods
+
+To get all the comment threads of a model that acts_as_commentable
+  book.threads # Returns an array of all the root comments for that book
+
+To see is a model that acts_as_commented has been commented by a model that acts_as_commenter use the following
+  book.commented_by?(user)
+
+---
+
+=== Comment Model
+
+The Comment model has a set of named_scope's. In case you want to interface directly with the Comment model you can
+use them.
+
+  Comment.descending # returns all records in a descending order based on created_at datetime
+
+This method pulls all records created after a certain date.  The default is 2 weeks but it takes an optional parameter.
+  Comment.recent
+  Comment.recent(4.weeks.ago)
+
+Comment.for_commenter is a named_scope that is mainly there to reduce code in the modules but it could be used directly. It takes an object and will return all Comment records where the commenter is the record passed in.
+  Comment.for_commenter(user)
+
+Comment.for_commentable acts the same as its counterpart (for_commenter). It is mainly there to reduce duplication, however it can be used directly.  It takes an object that is the commented object and return all Comment records where that record is the commentable.
+  Comment.for_commentable(book)
+
+You can also call the following instance methods of the Comment class.
+
+To have an object reply to a comment on another object use the following:
+  book = Book.find(1)
+  user = User.find(1)
+  comment = book.comments.first
+  comment.reply(user, "This is my reply.")
