@@ -20,6 +20,14 @@ module ActsAsCommentable #:nodoc:
       def commented_by?(commenter)
         self.comments.for_commenter(commenter).size > 0
       end
+      
+      def comments_count
+        self.comments.count
+      end
+      
+      def threads_count
+        self.comments.roots.count
+      end
     end
   end
 end
